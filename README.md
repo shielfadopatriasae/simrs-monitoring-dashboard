@@ -112,7 +112,7 @@ git pull origin main
 # 3. Build image aplikasi secara lokal
 docker build -t simrs-dashboard-app:latest .
 
-# 4. Siapkan & edit file konfigurasi .env jika belum ada
+# 4. Siapkan & edit file konfigurasi .env (ini berisi api bpjs, cons id, api key) jika belum ada
 cp .env.clone.ganti .env
 nano .env
 
