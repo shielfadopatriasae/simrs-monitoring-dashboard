@@ -6,6 +6,7 @@ services:
     env_file: .env
     volumes:
       - app-storage:/var/www/html/storage
+      - app-public:/var/www/html/public
     networks:
       - simrs-network
     deploy:
@@ -27,7 +28,7 @@ services:
         protocol: tcp
         mode: ingress
     volumes:
-      - .:/var/www/html
+      - app-public:/var/www/html/public
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - simrs-network
@@ -41,6 +42,7 @@ services:
 
 volumes:
   app-storage:
+  app-public:
 
 networks:
   simrs-network:
