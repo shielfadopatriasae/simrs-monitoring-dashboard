@@ -69,8 +69,39 @@ Built with a focus on security, performance, and UI/UX, this dashboard ensures h
 
    # Terminal 2: Start Vite Frontend
    npm run dev
-   ```
    Visit `http://localhost:8000` in your browser.
+
+---
+
+## 🚢 Deployment Guides
+
+### Option 1: Docker (Recommended)
+This repository is fully Dockerized with a multi-stage build (Node.js for Vite, PHP-FPM for backend).
+1. Clone the repository to your server.
+2. Setup your `.env` file from `.env.clone.ganti`.
+3. Build and run the containers:
+   ```bash
+   docker compose up -d --build
+   ```
+4. Access your dashboard at `http://YOUR_SERVER_IP:8000`.
+
+### Option 2: aaPanel (Production Server)
+If you are using aaPanel to host your SIMRS Khanza web applications:
+1. Upload the website folder to `/www/wwwroot/simrs-monitoring`.
+2. Add a new **PHP Project** in aaPanel:
+   - **Domain**: `monitoring.rs-anda.com` (or your preferred IP/domain)
+   - **Root directory**: `/www/wwwroot/simrs-monitoring`
+   - **Run directory (Project directory)**: `/public` (Crucial for Laravel!)
+   - **PHP version**: `8.2` or higher.
+3. Open the Site Settings -> **Site directory** -> uncheck **Anti-XSS attack (Base directory restriction)** to allow Laravel to access files outside the `public` folder.
+4. Setup URL Rewrite (Pseudo-static) to **Laravel**.
+5. Open aaPanel Terminal, navigate to your folder, and build the frontend assets:
+   ```bash
+   cd /www/wwwroot/simrs-monitoring
+   composer install --no-dev
+   npm install
+   npm run build
+   ```
 
 ---
 

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: simrs-dashboard-app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - .:/var/www/html
+      # Don't overwrite the vendor and node_modules built in the image
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+      - /var/www/html/public/build
+    networks:
+      - simrs-network
+
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - simrs-network
+
+networks:
+  simrs-network:
+    driver: bridge
