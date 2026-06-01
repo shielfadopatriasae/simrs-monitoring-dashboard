@@ -94,10 +94,12 @@ Metode ini sangat cocok untuk server tunggal (VPS/PC Server biasa) yang sudah te
 Metode ini digunakan jika server Rumah Sakit Anda menggunakan orkestrasi **Docker Swarm** untuk menjamin aplikasi tidak pernah mati.
 
 > [!WARNING]
-> **PENTING SEBELUM DEPLOY:**
-> Karena image Docker di-build secara lokal di server Anda, kita harus mengunci kontainer agar hanya berjalan di server manager utama (tempat Anda mem-build image).
-> 1. Jalankan `docker node ls` untuk melihat nama komputer server Anda (lihat bagian `HOSTNAME`, contoh: `it`).
-> 2. Buka file `docker-stack.yml`, cari baris `- node.hostname == it` (ada 2 tempat). Ubah tulisan `it` dengan hostname server Anda.
+> **PENTING SEBELUM DEPLOY (KONDISI MULTI-NODE CLUSTER):**
+> Secara default, file `docker-stack.yml` diatur menggunakan constraint `- node.role == manager` yang akan langsung bekerja lancar pada cluster Swarm tunggal (*Single Node*).
+> Namun, jika cluster Swarm Anda memiliki **lebih dari satu node** (Multi-Node) dan Anda membangun image secara lokal (tidak menggunakan Private Registry/Docker Hub):
+> 1. Jalankan `docker node ls` di terminal untuk melihat nama host server manager utama Anda (lihat kolom `HOSTNAME`, misal: `it`).
+> 2. Buka `docker-stack.yml`, cari baris `- node.role == manager` (ada 2 tempat: di service `app` dan `web`).
+> 3. Ubah baris tersebut menjadi `- node.hostname == nama_hostname_anda` (contoh: `- node.hostname == it`) agar container terkunci hanya berjalan di server tempat Anda mem-build image.
 
 **Langkah-langkah eksekusi:**
 ```bash
