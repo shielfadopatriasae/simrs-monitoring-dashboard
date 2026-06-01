@@ -13,7 +13,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname == it
+          - node.role == manager # Ganti ke "node.hostname == nama_node" jika multi-node cluster tanpa registry
       update_config:
         parallelism: 1
         delay: 10s
@@ -39,7 +39,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname == it
+          - node.role == manager # Ganti ke "node.hostname == nama_node" jika multi-node cluster tanpa registry
       update_config:
         parallelism: 1
         delay: 10s
