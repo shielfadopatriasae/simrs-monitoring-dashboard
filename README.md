@@ -1,266 +1,198 @@
-# SIMRS Khanza API Monitoring Dashboard 🏥
+# 🏥 SIMRS Khanza API Monitoring Dashboard
 
-![SIMRS Dashboard Banner](https://img.shields.io/badge/SIMRS-Khanza-blue.svg) 
-![React](https://img.shields.io/badge/React-18.x-61DAFB.svg?logo=react)
-![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg?logo=laravel)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38B2AC.svg?logo=tailwind-css)
+![SIMRS Dashboard Banner](https://img.shields.io/badge/SIMRS-Khanza-blue.svg?style=for-the-badge) 
+![React](https://img.shields.io/badge/React-18.x-61DAFB.svg?style=for-the-badge&logo=react)
+![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg?style=for-the-badge&logo=laravel)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38B2AC.svg?style=for-the-badge&logo=tailwind-css)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?style=for-the-badge&logo=docker)
 
-A modern, real-time telemetry dashboard designed specifically for **SIMRS Khanza**. This application actively monitors the connectivity, latency, and health of 12 critical API endpoints from **BPJS Kesehatan** and **Kementerian Kesehatan (Kemenkes)**.
+Aplikasi **Monitoring Dashboard** yang dirancang khusus untuk memantau kesehatan (*health check*), kecepatan koneksi (*latency*), dan status keaktifan **12 API penting** dari **BPJS Kesehatan** dan **Kementerian Kesehatan (Kemenkes)** yang terintegrasi dengan **SIMRS Khanza**.
 
-Built with a focus on security, performance, and UI/UX, this dashboard ensures hospital IT administrators can proactively detect network or WAF (Web Application Firewall) issues before they impact patient services.
-
----
-
-## 🌟 Key Features
-
-- **Real-time API Telemetry:** Live ping and latency tracking for 12 essential healthcare endpoints (VClaim, Aplicare, Antrean Online, SatuSehat, etc.).
-- **Smart WAF Bypass & Caching:** 
-  - **Auto-Caching:** Limits outbound pings to BPJS servers (e.g., max 12 requests/minute) to prevent hospital IPs from being blacklisted for spam/DDoS.
-  - **Intelligent Pathing:** Simulates legitimate API traffic with `User-Agent`, forced `IPv4`, and valid endpoint paths to bypass aggressive BPJS WAF connection resets (cURL Error 56).
-- **Secure Credential Extraction:** Dynamically reads and decrypts `database.xml` AES-128-CBC encryption on the backend. No secrets are ever exposed to the frontend.
-- **Glassmorphism UI:** A sleek, premium dashboard featuring React, Tailwind CSS v4, dynamic Sparkline charts, and instant Light/Dark mode toggling.
-- **Audio Alerts:** Automated system beeps to notify IT staff when critical services go offline.
+Dibuat dengan tampilan modern (*Glassmorphism UI*), responsif, dan ringan. Aplikasi ini membantu rekan-rekan **IT SIMRS / Komite Medik** di Rumah Sakit untuk mendeteksi secara dini kendala jaringan, gangguan SSL, atau blokir firewall (WAF) dari pihak BPJS/Kemenkes sebelum berdampak pada antrean pasien di lapangan.
 
 ---
 
-## 🚀 Tech Stack
+## 🌟 Fitur Utama (Kenapa Harus Pakai Ini?)
 
-- **Backend:** Laravel 12 (PHP 8.2+)
-- **Frontend:** React 18, Inertia.js
-- **Styling:** Tailwind CSS v4 (Class Strategy Dark Mode)
-- **Monitoring Strategy:** Guzzle HTTP Client with custom SSL & Timeout rules.
+*   **Telemetri Real-Time:** Memantau secara langsung kestabilan dan kecepatan respons (*ping*) ke 12 endpoint API krusial (VClaim, Aplicare, Antrean Online, SatuSehat, dll.).
+*   **Bypass Proteksi WAF BPJS & Kemenkes:** 
+    *   **Smart Auto-Caching:** Melakukan pembatasan permintaan (*rate-limiting*) ke server BPJS secara otomatis (maksimal request setiap 5 detik) agar IP publik Rumah Sakit Anda **tidak diblokir/blacklist** karena dianggap melakukan spam/DDoS.
+    *   **Intelligent Request (Anti-Blokir):** Menggunakan *Header Spoofing* (User-Agent peramban resmi), pemaksaan koneksi *IPv4 Only*, serta protokol *TLS 1.2* / *HTTP 1.1* untuk melewati pertahanan cURL Error 56 akibat proteksi ketat firewall BPJS.
+*   **Keamanan Ekstra:** Membaca data kredensial langsung dari enkripsi `database.xml` SIMRS Khanza menggunakan AES-128-CBC di sisi *backend*. Rahasia dapur rumah sakit Anda dijamin aman dan **tidak pernah bocor** ke browser pengunjung.
+*   **Tampilan Premium (Glassmorphism):** Didesain dengan gaya transparan modern yang futuristik, lengkap dengan grafik pergerakan latency (*Sparkline*), indikator status warna dinamis (Hijau = Online, Merah = Offline), serta sistem sakelar Mode Terang/Gelap (*Light/Dark Mode*).
+*   **Peringatan Suara (Audio Alerts):** Otomatis mengeluarkan bunyi alarm peringatan (*beep*) saat ada koneksi API penting yang tiba-tiba terputus (*OFFLINE*), sehingga staf IT bisa langsung sigap bertindak tanpa harus terus-menerus menatap layar dashboard.
 
 ---
 
-## 📋 Requirements & Prerequisites
+## 🚀 Teknologi yang Digunakan
 
-Aplikasi ini dirancang untuk dapat di-install secara universal di **semua jenis server** (Linux, Windows Server, macOS). Pilih salah satu metode di bawah ini sesuai dengan kesiapan server Anda:
+*   **Backend:** Laravel 12 (PHP 8.4-FPM)
+*   **Frontend:** React 18 & Inertia.js (Bebas lag, secepat kilat)
+*   **Styling:** Tailwind CSS v4 (Sangat ringan dan modern)
+*   **Connection Agent:** Guzzle HTTP Client dengan aturan penanganan Timeout & SSL kustom.
 
-### 🐳 Metode A: Menggunakan Docker / Docker Swarm (SANGAT DIREKOMENDASIKAN - Universal)
-Dengan metode ini, Anda **tidak perlu** menginstal PHP, Node.js, Composer, atau NPM di server host Anda. Semua dependencies sudah dibundel secara otomatis di dalam container Docker.
-- **Prasyarat Sistem:**
-  - **Docker Engine** (v20.10+)
-  - **Docker Compose** (v2.x+) atau **Docker Swarm** aktif.
-  - Port `8000` (atau port lain pilihan Anda) terbuka di Firewall.
+---
+
+## 📋 Persyaratan & Panduan Memilih Cara Install
+
+Aplikasi ini sangat fleksibel dan dapat di-install di **semua jenis server** (Linux Ubuntu/Debian/CentOS, Windows Server, Proxmox, VPS, aaPanel, bahkan cPanel hosting biasa).
+
+Silakan pilih salah satu metode instalasi yang paling sesuai dengan kondisi server di Rumah Sakit Anda:
+
+### 🐳 [REKOMENDASI] Metode A: Menggunakan Docker / Docker Swarm (Praktis & Universal)
+> [!NOTE]
+> Jika Anda menggunakan Docker, Anda **TIDAK PERLU** menginstal PHP, Composer, Node.js, atau NPM di server fisik Anda! Semua kebutuhan sistem sudah dibundel rapi dan aman di dalam container.
+
+*   **Persyaratan Server:**
+    *   Sudah terpasang **Docker Engine** dan **Docker Compose**.
+    *   Port `8000` (atau port lain pilihan Anda) tidak sedang digunakan oleh aplikasi lain.
 
 ---
 
 ### 🖥️ Metode B: Instalasi Tradisional (aaPanel, cPanel, VPS Tanpa Docker)
-Jika Anda tidak menggunakan Docker, Anda wajib mempersiapkan software berikut di server Anda:
-- **Prasyarat Sistem:**
-  - **PHP 8.2 ke atas** (dengan ekstensi: `php-curl`, `php-xml`, `php-zip`, `php-mbstring`, `php-sqlite3`)
-  - **Composer 2.x** (Dependency Manager PHP)
-  - **Node.js 18+ & NPM 9+** (Untuk build frontend React)
+> [!IMPORTANT]
+> Jika Anda memilih cara ini, Anda harus menyiapkan dan menginstal software berikut di server Anda secara manual sebelum menjalankan aplikasi.
 
-> **💡 Catatan Database:** Aplikasi ini menggunakan database **SQLite lokal** (file-based) bawaan untuk manajemen session dan cache. Anda **TIDAK PERLU** menyiapkan database MySQL/MariaDB eksternal. Aplikasi langsung siap pakai!
+*   **Persyaratan Software:**
+    *   **PHP versi 8.2 atau 8.4** (Wajib mengaktifkan modul: `php-curl`, `php-xml`, `php-zip`, `php-mbstring`, `php-sqlite3`).
+    *   **Composer 2.x** (Untuk mengunduh library PHP).
+    *   **Node.js 18 ke atas** dan **NPM 9 ke atas** (Untuk merakit tampilan visual React).
 
----
-
-## ⚙️ Installation (All Platforms)
-
-These steps apply to **every** hosting environment (aaPanel, cPanel, Docker, VPS, etc.).
-
-### Step 1: Clone or Download
-```bash
-git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
-cd simrs-monitoring-dashboard
-```
-
-### Step 2: Install Dependencies
-```bash
-composer install --no-dev --optimize-autoloader
-npm install
-```
-
-### Step 3: Environment Setup
-```bash
-cp .env.clone.ganti .env
-php artisan key:generate
-```
-Then open `.env` and fill in your SIMRS Khanza API URLs and credentials.
-
-### Step 4: Build Frontend
-```bash
-npm run build
-```
-
-### Step 5: Set Permissions (Linux/Mac)
-```bash
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
-```
+> [!TIP]
+> **Aplikasi ini BEBAS DATABASE EKSTERNAL!** Anda tidak perlu membuat database MySQL/MariaDB baru. Aplikasi ini menggunakan teknologi database **SQLite lokal** yang langsung tersimpan di dalam file sistem aplikasi. Sangat praktis!
 
 ---
 
-## 🚢 Deployment Guides
+## ⚙️ Langkah Instalasi Lengkap (Pilih Salah Satu)
 
-### 🖥️ Option 1: Local Development (Windows/Mac/Linux)
-Open two terminals:
+---
+
+### 🖥️ Pilihan 1: Instalasi Menggunakan Docker (Paling Mudah)
+
+Metode ini sangat cocok untuk server tunggal (VPS/PC Server biasa) yang sudah terpasang Docker.
+
+1.  **Unduh kode aplikasi:**
+    ```bash
+    git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
+    cd simrs-monitoring-dashboard
+    ```
+2.  **Siapkan file konfigurasi:**
+    ```bash
+    cp .env.clone.ganti .env
+    ```
+    *Gunakan text editor favorit Anda (seperti `nano .env`) untuk mengedit file `.env`. Masukkan alamat IP server database Khanza Anda serta kredensial API BPJS/Kemenkes di sana.*
+3.  **Jalankan aplikasi:**
+    ```bash
+    docker compose up -d --build
+    ```
+4.  **Selesai!** Buka browser Anda dan akses `http://IP_SERVER_ANDA:8000`.
+
+---
+
+### 🐳 Pilihan 2: Docker Swarm (Untuk Server Cluster & High Availability)
+
+Metode ini digunakan jika server Rumah Sakit Anda menggunakan orkestrasi **Docker Swarm** untuk menjamin aplikasi tidak pernah mati.
+
+> [!WARNING]
+> **PENTING SEBELUM DEPLOY:**
+> Karena image Docker di-build secara lokal di server Anda, kita harus mengunci kontainer agar hanya berjalan di server manager utama (tempat Anda mem-build image).
+> 1. Jalankan `docker node ls` untuk melihat nama komputer server Anda (lihat bagian `HOSTNAME`, contoh: `it`).
+> 2. Buka file `docker-stack.yml`, cari baris `- node.hostname == it` (ada 2 tempat). Ubah tulisan `it` dengan hostname server Anda.
+
+**Langkah-langkah eksekusi:**
 ```bash
-# Terminal 1: Laravel Backend
-php artisan serve
+# 1. Masuk ke folder aplikasi
+cd /opt/simrs-monitoring-dashboard
 
-# Terminal 2: Vite Dev Server
-npm run dev
-```
-Visit `http://localhost:8000`.
+# 2. Ambil versi terbaru
+git pull origin main
 
----
-
-### 🟢 Option 2: aaPanel
-1. Upload project folder to `/www/wwwroot/simrs-monitoring`.
-2. Add a new **PHP Website** in aaPanel:
-   - **Domain**: `monitoring.rs-anda.com` (or your IP)
-   - **Root directory**: `/www/wwwroot/simrs-monitoring`
-   - **Run directory**: `/public` ← **PENTING! Wajib diisi `/public`**
-   - **PHP version**: `8.2` or higher
-3. Open **Site Settings** → **Site directory** → uncheck **Anti-XSS attack (open_basedir)**.
-4. Set **URL Rewrite (Pseudo-static)** to `Laravel 5`.
-5. Open aaPanel Terminal and run:
-   ```bash
-   cd /www/wwwroot/simrs-monitoring
-   composer install --no-dev --optimize-autoloader
-   npm install && npm run build
-   cp .env.clone.ganti .env
-   php artisan key:generate
-   chmod -R 775 storage bootstrap/cache
-   ```
-6. Edit `.env` with your API credentials, then visit your domain.
-
----
-
-### 🟠 Option 3: cPanel (Shared Hosting)
-1. Upload project to your home directory (e.g., `/home/username/simrs-monitoring`).
-2. Point your domain's **Document Root** to `/home/username/simrs-monitoring/public`.
-   - In cPanel → **Domains** → edit the domain → change Document Root.
-3. Open **Terminal** in cPanel and run:
-   ```bash
-   cd ~/simrs-monitoring
-   composer install --no-dev --optimize-autoloader
-   npm install && npm run build
-   cp .env.clone.ganti .env
-   php artisan key:generate
-   ```
-4. Create/edit `.htaccess` in `public/` folder (usually auto-created by Laravel).
-5. Edit `.env` with your API credentials.
-6. Make sure your hosting supports **PHP 8.2+** and has the `curl` extension enabled.
-
----
-
-### 🐳 Option 4: Docker
-This repository includes a multi-stage Dockerfile (Node.js + PHP-FPM) and Nginx configuration.
-
-```bash
-# 1. Clone and setup .env
-git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
-cd simrs-monitoring-dashboard
-cp .env.clone.ganti .env
-# Edit .env with your API credentials
-
-# 2. Build and run
-docker compose up -d --build
-```
-Visit `http://YOUR_SERVER_IP:8000`.
-
----
-
-### 🐳 Option 5: Docker Swarm (High-Availability Cluster)
-Metode ini digunakan jika server Anda tergabung dalam jaringan cluster **Docker Swarm**. Kelebihannya adalah ketersediaan tinggi (*High Availability*) dan auto-restart jika ada service yang mati.
-
-> **⚠️ PENTING SEBELUM DEPLOY:**
-> Karena image Docker kita di-build secara lokal (tidak di-push ke Docker Hub / Private Registry), maka container harus dikunci agar berjalan **hanya pada node di mana Anda membangun image tersebut**.
-> 1. Jalankan `docker node ls` di terminal untuk melihat nama hostname server Anda (kolom `HOSTNAME`, contoh: `it`).
-> 2. Buka file `docker-stack.yml`, cari baris `- node.hostname == it` (ada 2 lokasi: satu di service `app` dan satu di `web`).
-> 3. Ubah kata `it` menjadi nama hostname server Anda jika berbeda.
-
-Langkah-langkah deployment:
-```bash
-# 1. Pastikan docker swarm sudah aktif (jika belum, jalankan: docker swarm init)
-
-# 2. Build Docker Image secara lokal di server manager utama
+# 3. Build image aplikasi secara lokal
 docker build -t simrs-dashboard-app:latest .
 
-# 3. Setup file environment
+# 4. Siapkan & edit file konfigurasi .env jika belum ada
 cp .env.clone.ganti .env
-# Edit .env dengan credentials API Anda (nano .env)
+nano .env
 
-# 4. Deploy stack ke Docker Swarm
+# 5. Jalankan ke dalam Docker Swarm
 docker stack deploy -c docker-stack.yml simrs-monitor
 ```
-
-Untuk memantau status kontainer di dalam swarm:
-```bash
-docker service ls
-docker service ps simrs-monitor_web --no-trunc
-```
-Aplikasi akan otomatis menyala di port `8000`. Jika ingin mematikan stack, cukup jalankan `docker stack rm simrs-monitor`.
-
-> **✨ Bebas Masalah Izin SQLite:** 
-> Dockerfile kita sudah dilengkapi sistem *auto-create* dan *auto-chown* untuk database SQLite di dalam container. Tidak ada langkah tambahan yang perlu Anda lakukan setelah deploy!
+> [!TIP]
+> Dockerfile kami sudah dilengkapi sistem otomatis untuk mengatur hak akses (*permissions*) dan pembuatan database SQLite secara internal di dalam kontainer. Anda tidak perlu lagi menjalankan perintah `chmod` atau `chown` secara manual setelah deploy!
 
 ---
 
-### 🖧 Option 6: Traditional VPS (Ubuntu/Debian with Nginx)
-1. Install dependencies:
-   ```bash
-   sudo apt update
-   sudo apt install php8.2-fpm php8.2-curl php8.2-xml php8.2-zip php8.2-mbstring nginx composer nodejs npm -y
-   ```
-2. Clone and setup:
-   ```bash
-   cd /var/www
-   git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
-   cd simrs-monitoring-dashboard
-   composer install --no-dev --optimize-autoloader
-   npm install && npm run build
-   cp .env.clone.ganti .env
-   php artisan key:generate
-   chown -R www-data:www-data storage bootstrap/cache
-   ```
-3. Configure Nginx:
-   ```nginx
-   server {
-       listen 80;
-       server_name monitoring.rs-anda.com;
-       root /var/www/simrs-monitoring-dashboard/public;
-       index index.php;
+### 🟢 Pilihan 3: Menggunakan aaPanel
 
-       location / {
-           try_files $uri $uri/ /index.php?$query_string;
-       }
+aaPanel adalah salah satu panel gratis terpopuler di kalangan IT RS. Berikut langkah termudahnya:
 
-       location ~ \.php$ {
-           fastcgi_pass unix:/run/php/php8.2-fpm.sock;
-           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-           include fastcgi_params;
-       }
-   }
-   ```
-4. Restart Nginx: `sudo systemctl restart nginx`
+1.  Upload seluruh folder hasil download aplikasi ini ke server Anda, misalnya di `/www/wwwroot/simrs-monitoring`.
+2.  Masuk ke menu **Website** → **Add Site**:
+    *   **Domain:** Isi dengan domain Anda (misal: `monitoring.rs-anda.com`) atau IP server.
+    *   **Root Directory:** `/www/wwwroot/simrs-monitoring`
+    *   **PHP Version:** Pilih PHP `8.2` or higher.
+3.  **Pengaturan Tambahan (PENTING!):**
+    *   Klik **Site Settings** pada website yang baru dibuat.
+    *   Pilih menu **Site Directory**, ubah kolom **Run Directory** menjadi `/public` lalu klik **Save**.
+    *   **Matikan/Uncheck** pilihan **Anti-XSS attack (open_basedir)**.
+    *   Pilih menu **URL Rewrite**, ganti pilihannya menjadi `laravel5` lalu klik **Save**.
+4.  Buka **aaPanel Terminal**, jalankan perintah berikut:
+    ```bash
+    cd /www/wwwroot/simrs-monitoring
+    composer install --no-dev --optimize-autoloader
+    npm install && npm run build
+    cp .env.clone.ganti .env
+    php artisan key:generate
+    chmod -R 775 storage bootstrap/cache database
+    chown -R www-data:www-data storage bootstrap/cache database
+    ```
+5.  Edit file `.env` dengan kredensial Anda, lalu buka domain/IP Anda di browser.
 
 ---
 
-## 🛡️ Endpoints Monitored
+### 🟠 Pilihan 4: Menggunakan cPanel (Hosting Biasa)
 
-| # | Service | Category |
-|---|---------|----------|
-| 1 | BPJS VClaim | Klaim & SEP |
-| 2 | BPJS Aplicare | Ketersediaan Kamar |
-| 3 | BPJS Antrean Online | Mobile JKN RS |
-| 4 | BPJS i-Care | Rekam Medis JKN |
-| 5 | BPJS Apotek / PRB | Program Rujuk Balik |
-| 6 | BPJS PCare | Pelayanan FKTP |
-| 7 | BPJS Mobile JKN FKTP | Antrean FKTP |
-| 8 | BPJS E-Klaim | SmartClaim |
-| 9 | Kemenkes SatuSehat | FHIR R4 |
-| 10 | Kemenkes SISRUTE | Sistem Rujukan |
-| 11 | Kemenkes SIRS Online | Pelaporan RS |
-| 12 | Kemenkes SITB | Tuberkulosis |
+Bagi Rumah Sakit yang ingin menaruh dashboard monitoring ini di hosting luar agar bisa dipantau dari mana saja tanpa membebani server lokal.
+
+1.  Upload seluruh folder aplikasi ke direktori utama cPanel Anda (sejajar dengan `public_html`, misal di `/home/username/simrs-monitoring`).
+2.  Buka menu **Domains** di cPanel, buat domain/subdomain baru (misal: `monitoring.rs-anda.com`).
+3.  Arahkan **Document Root** domain tersebut ke folder `/public` aplikasi Anda (misal: `/home/username/simrs-monitoring/public`).
+4.  Buka **Terminal** di cPanel dan jalankan:
+    ```bash
+    cd ~/simrs-monitoring
+    composer install --no-dev --optimize-autoloader
+    npm install && npm run build
+    cp .env.clone.ganti .env
+    php artisan key:generate
+    ```
+5.  Edit file `.env` via cPanel File Manager dengan kredensial API RS Anda.
+6.  *Catatan: Pastikan versi PHP di cPanel Anda sudah diatur ke 8.2 atau 8.4 melalui menu **Select PHP Version**.*
 
 ---
 
-## 👨‍💻 Developed By
+## 🛡️ 12 API yang Dipantau
+
+Berikut adalah daftar lengkap 12 API eksternal yang dipantau oleh aplikasi ini secara otomatis setiap saat:
+
+| No | Nama Layanan / API | Kategori Layanan | Keterangan |
+| :--- | :--- | :--- | :--- |
+| **1** | **BPJS VClaim** | Klaim & SEP | Pencetakan SEP, Rujukan, dan administrasi klaim pasien |
+| **2** | **BPJS Aplicare** | Ketersediaan Kamar | Sinkronisasi jumlah bed/kamar kosong ke sistem BPJS |
+| **3** | **BPJS Antrean Online** | Antrean Mobile JKN | Integrasi nomor antrean pendaftaran pasien dari Mobile JKN |
+| **4** | **BPJS i-Care** | Rekam Medis JKN | Akses riwayat medis pasien BPJS secara aman |
+| **5** | **BPJS Apotek / PRB** | Rujuk Balik | Pelayanan resep obat bagi pasien kronis rujuk balik |
+| **6** | **BPJS PCare** | FKTP / Faskes 1 | Integrasi bridging untuk faskes tingkat pertama |
+| **7** | **BPJS Mobile JKN FKTP** | Antrean FKTP | Sistem antrean online khusus klinik/puskesmas |
+| **8** | **BPJS E-Klaim** | SmartClaim | Pengiriman berkas klaim digital terintegrasi |
+| **9** | **Kemenkes SATUSEHAT** | Platform Integrasi | Integrasi data Resume Medis elektronik sesuai standar FHIR R4 |
+| **10** | **Kemenkes SISRUTE** | Sistem Rujukan | Sistem komunikasi rujukan pasien antar rumah sakit |
+| **11** | **Kemenkes SIRS Online** | Pelaporan RS | Pelaporan berkas RL (Rekap Laporan) tahunan/bulanan |
+| **12** | **Kemenkes SITB** | Tuberkulosis | Pelaporan pasien terduga TB langsung ke Kemenkes |
+
+---
+
+## 🧑‍💻 Dikembangkan Oleh
 
 **[Shielfado Patriasae](https://github.com/shielfadopatriasae)**  
 *IT Professional & Web Developer*  
-Specializing in Healthcare IT Integrations, Web Security, and Modern UI/UX.
+Spesialis dalam Integrasi IT Layanan Kesehatan, Keamanan Sistem Informasi, dan UI/UX Modern Berkinerja Tinggi.
