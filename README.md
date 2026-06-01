@@ -32,16 +32,27 @@ Built with a focus on security, performance, and UI/UX, this dashboard ensures h
 
 ---
 
-## 📋 Requirements
+## 📋 Requirements & Prerequisites
 
-| Software | Minimum Version |
-|----------|----------------|
-| PHP      | 8.2+           |
-| Composer | 2.x            |
-| Node.js  | 18+            |
-| NPM      | 9+             |
+Aplikasi ini dirancang untuk dapat di-install secara universal di **semua jenis server** (Linux, Windows Server, macOS). Pilih salah satu metode di bawah ini sesuai dengan kesiapan server Anda:
 
-> **Note:** Database is NOT required. This app uses file-based caching only.
+### 🐳 Metode A: Menggunakan Docker / Docker Swarm (SANGAT DIREKOMENDASIKAN - Universal)
+Dengan metode ini, Anda **tidak perlu** menginstal PHP, Node.js, Composer, atau NPM di server host Anda. Semua dependencies sudah dibundel secara otomatis di dalam container Docker.
+- **Prasyarat Sistem:**
+  - **Docker Engine** (v20.10+)
+  - **Docker Compose** (v2.x+) atau **Docker Swarm** aktif.
+  - Port `8000` (atau port lain pilihan Anda) terbuka di Firewall.
+
+---
+
+### 🖥️ Metode B: Instalasi Tradisional (aaPanel, cPanel, VPS Tanpa Docker)
+Jika Anda tidak menggunakan Docker, Anda wajib mempersiapkan software berikut di server Anda:
+- **Prasyarat Sistem:**
+  - **PHP 8.2 ke atas** (dengan ekstensi: `php-curl`, `php-xml`, `php-zip`, `php-mbstring`, `php-sqlite3`)
+  - **Composer 2.x** (Dependency Manager PHP)
+  - **Node.js 18+ & NPM 9+** (Untuk build frontend React)
+
+> **💡 Catatan Database:** Aplikasi ini menggunakan database **SQLite lokal** (file-based) bawaan untuk manajemen session dan cache. Anda **TIDAK PERLU** menyiapkan database MySQL/MariaDB eksternal. Aplikasi langsung siap pakai!
 
 ---
 
@@ -153,16 +164,39 @@ Visit `http://YOUR_SERVER_IP:8000`.
 
 ---
 
-### 🐳 Option 5: Docker Swarm
-For production clusters with Docker Swarm enabled:
+### 🐳 Option 5: Docker Swarm (High-Availability Cluster)
+Metode ini digunakan jika server Anda tergabung dalam jaringan cluster **Docker Swarm**. Kelebihannya adalah ketersediaan tinggi (*High Availability*) dan auto-restart jika ada service yang mati.
 
+> **⚠️ PENTING SEBELUM DEPLOY:**
+> Karena image Docker kita di-build secara lokal (tidak di-push ke Docker Hub / Private Registry), maka container harus dikunci agar berjalan **hanya pada node di mana Anda membangun image tersebut**.
+> 1. Jalankan `docker node ls` di terminal untuk melihat nama hostname server Anda (kolom `HOSTNAME`, contoh: `it`).
+> 2. Buka file `docker-stack.yml`, cari baris `- node.hostname == it` (ada 2 lokasi: satu di service `app` dan satu di `web`).
+> 3. Ubah kata `it` menjadi nama hostname server Anda jika berbeda.
+
+Langkah-langkah deployment:
 ```bash
-# 1. Build the image first
+# 1. Pastikan docker swarm sudah aktif (jika belum, jalankan: docker swarm init)
+
+# 2. Build Docker Image secara lokal di server manager utama
 docker build -t simrs-dashboard-app:latest .
 
-# 2. Deploy the stack
+# 3. Setup file environment
+cp .env.clone.ganti .env
+# Edit .env dengan credentials API Anda (nano .env)
+
+# 4. Deploy stack ke Docker Swarm
 docker stack deploy -c docker-stack.yml simrs-monitor
 ```
+
+Untuk memantau status kontainer di dalam swarm:
+```bash
+docker service ls
+docker service ps simrs-monitor_web --no-trunc
+```
+Aplikasi akan otomatis menyala di port `8000`. Jika ingin mematikan stack, cukup jalankan `docker stack rm simrs-monitor`.
+
+> **✨ Bebas Masalah Izin SQLite:** 
+> Dockerfile kita sudah dilengkapi sistem *auto-create* dan *auto-chown* untuk database SQLite di dalam container. Tidak ada langkah tambahan yang perlu Anda lakukan setelah deploy!
 
 ---
 
