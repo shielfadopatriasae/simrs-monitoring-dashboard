@@ -27,6 +27,7 @@ services:
         protocol: tcp
         mode: ingress
     volumes:
+      - .:/var/www/html
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - simrs-network
