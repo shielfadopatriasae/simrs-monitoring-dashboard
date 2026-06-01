@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    image: simrs-dashboard-app:latest
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+    env_file: .env
+    networks:
+      - simrs-network
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+  web:
+    image: nginx:alpine
+    ports:
+      - target: 80
+        published: 8000
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: ./docker/nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+    networks:
+      - simrs-network
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+networks:
+  simrs-network:
+    driver: overlay
+    attachable: true

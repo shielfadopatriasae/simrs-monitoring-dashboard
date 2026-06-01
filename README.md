@@ -25,100 +25,203 @@ Built with a focus on security, performance, and UI/UX, this dashboard ensures h
 
 ## 🚀 Tech Stack
 
-- **Backend:** Laravel 12 (PHP 8.5)
+- **Backend:** Laravel 12 (PHP 8.2+)
 - **Frontend:** React 18, Inertia.js
 - **Styling:** Tailwind CSS v4 (Class Strategy Dark Mode)
 - **Monitoring Strategy:** Guzzle HTTP Client with custom SSL & Timeout rules.
 
 ---
 
-## ⚙️ Installation & Setup
+## 📋 Requirements
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
-   cd simrs-monitoring-dashboard
-   ```
+| Software | Minimum Version |
+|----------|----------------|
+| PHP      | 8.2+           |
+| Composer | 2.x            |
+| Node.js  | 18+            |
+| NPM      | 9+             |
 
-2. **Install Dependencies**
-   ```bash
-   composer install
-   npm install
-   ```
+> **Note:** Database is NOT required. This app uses file-based caching only.
 
-3. **Environment Setup**
-   Copy the example `.env` file and generate an application key:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
+---
 
-4. **Configure Endpoints**
-   Open your `.env` file and paste the API URLs retrieved from your SIMRS Khanza `database.xml`. Example:
-   ```env
-   URLAPIBPJS="https://apijkn.bpjs-kesehatan.go.id/vclaim-rest"
-   URLAPIAPLICARE="https://new-api.bpjs-kesehatan.go.id/aplicaresws"
-   # Add the rest of the endpoints here...
-   ```
+## ⚙️ Installation (All Platforms)
 
-5. **Run the Application**
-   Open two terminals and start both servers:
-   ```bash
-   # Terminal 1: Start Laravel Backend
-   php artisan serve
+These steps apply to **every** hosting environment (aaPanel, cPanel, Docker, VPS, etc.).
 
-   # Terminal 2: Start Vite Frontend
-   npm run dev
-   Visit `http://localhost:8000` in your browser.
+### Step 1: Clone or Download
+```bash
+git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
+cd simrs-monitoring-dashboard
+```
+
+### Step 2: Install Dependencies
+```bash
+composer install --no-dev --optimize-autoloader
+npm install
+```
+
+### Step 3: Environment Setup
+```bash
+cp .env.clone.ganti .env
+php artisan key:generate
+```
+Then open `.env` and fill in your SIMRS Khanza API URLs and credentials.
+
+### Step 4: Build Frontend
+```bash
+npm run build
+```
+
+### Step 5: Set Permissions (Linux/Mac)
+```bash
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+```
 
 ---
 
 ## 🚢 Deployment Guides
 
-### Option 1: Docker (Recommended)
-This repository is fully Dockerized with a multi-stage build (Node.js for Vite, PHP-FPM for backend).
-1. Clone the repository to your server.
-2. Setup your `.env` file from `.env.clone.ganti`.
-3. Build and run the containers:
-   ```bash
-   docker compose up -d --build
-   ```
-4. Access your dashboard at `http://YOUR_SERVER_IP:8000`.
+### 🖥️ Option 1: Local Development (Windows/Mac/Linux)
+Open two terminals:
+```bash
+# Terminal 1: Laravel Backend
+php artisan serve
 
-### Option 2: aaPanel (Production Server)
-If you are using aaPanel to host your SIMRS Khanza web applications:
-1. Upload the website folder to `/www/wwwroot/simrs-monitoring`.
-2. Add a new **PHP Project** in aaPanel:
-   - **Domain**: `monitoring.rs-anda.com` (or your preferred IP/domain)
+# Terminal 2: Vite Dev Server
+npm run dev
+```
+Visit `http://localhost:8000`.
+
+---
+
+### 🟢 Option 2: aaPanel
+1. Upload project folder to `/www/wwwroot/simrs-monitoring`.
+2. Add a new **PHP Website** in aaPanel:
+   - **Domain**: `monitoring.rs-anda.com` (or your IP)
    - **Root directory**: `/www/wwwroot/simrs-monitoring`
-   - **Run directory (Project directory)**: `/public` (Crucial for Laravel!)
-   - **PHP version**: `8.2` or higher.
-3. Open the Site Settings -> **Site directory** -> uncheck **Anti-XSS attack (Base directory restriction)** to allow Laravel to access files outside the `public` folder.
-4. Setup URL Rewrite (Pseudo-static) to **Laravel**.
-5. Open aaPanel Terminal, navigate to your folder, and build the frontend assets:
+   - **Run directory**: `/public` ← **PENTING! Wajib diisi `/public`**
+   - **PHP version**: `8.2` or higher
+3. Open **Site Settings** → **Site directory** → uncheck **Anti-XSS attack (open_basedir)**.
+4. Set **URL Rewrite (Pseudo-static)** to `Laravel 5`.
+5. Open aaPanel Terminal and run:
    ```bash
    cd /www/wwwroot/simrs-monitoring
-   composer install --no-dev
-   npm install
-   npm run build
+   composer install --no-dev --optimize-autoloader
+   npm install && npm run build
+   cp .env.clone.ganti .env
+   php artisan key:generate
+   chmod -R 775 storage bootstrap/cache
    ```
+6. Edit `.env` with your API credentials, then visit your domain.
+
+---
+
+### 🟠 Option 3: cPanel (Shared Hosting)
+1. Upload project to your home directory (e.g., `/home/username/simrs-monitoring`).
+2. Point your domain's **Document Root** to `/home/username/simrs-monitoring/public`.
+   - In cPanel → **Domains** → edit the domain → change Document Root.
+3. Open **Terminal** in cPanel and run:
+   ```bash
+   cd ~/simrs-monitoring
+   composer install --no-dev --optimize-autoloader
+   npm install && npm run build
+   cp .env.clone.ganti .env
+   php artisan key:generate
+   ```
+4. Create/edit `.htaccess` in `public/` folder (usually auto-created by Laravel).
+5. Edit `.env` with your API credentials.
+6. Make sure your hosting supports **PHP 8.2+** and has the `curl` extension enabled.
+
+---
+
+### 🐳 Option 4: Docker
+This repository includes a multi-stage Dockerfile (Node.js + PHP-FPM) and Nginx configuration.
+
+```bash
+# 1. Clone and setup .env
+git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
+cd simrs-monitoring-dashboard
+cp .env.clone.ganti .env
+# Edit .env with your API credentials
+
+# 2. Build and run
+docker compose up -d --build
+```
+Visit `http://YOUR_SERVER_IP:8000`.
+
+---
+
+### 🐳 Option 5: Docker Swarm
+For production clusters with Docker Swarm enabled:
+
+```bash
+# 1. Build the image first
+docker build -t simrs-dashboard-app:latest .
+
+# 2. Deploy the stack
+docker stack deploy -c docker-stack.yml simrs-monitor
+```
+
+---
+
+### 🖧 Option 6: Traditional VPS (Ubuntu/Debian with Nginx)
+1. Install dependencies:
+   ```bash
+   sudo apt update
+   sudo apt install php8.2-fpm php8.2-curl php8.2-xml php8.2-zip php8.2-mbstring nginx composer nodejs npm -y
+   ```
+2. Clone and setup:
+   ```bash
+   cd /var/www
+   git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
+   cd simrs-monitoring-dashboard
+   composer install --no-dev --optimize-autoloader
+   npm install && npm run build
+   cp .env.clone.ganti .env
+   php artisan key:generate
+   chown -R www-data:www-data storage bootstrap/cache
+   ```
+3. Configure Nginx:
+   ```nginx
+   server {
+       listen 80;
+       server_name monitoring.rs-anda.com;
+       root /var/www/simrs-monitoring-dashboard/public;
+       index index.php;
+
+       location / {
+           try_files $uri $uri/ /index.php?$query_string;
+       }
+
+       location ~ \.php$ {
+           fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+           include fastcgi_params;
+       }
+   }
+   ```
+4. Restart Nginx: `sudo systemctl restart nginx`
 
 ---
 
 ## 🛡️ Endpoints Monitored
 
-- **BPJS VClaim** (Klaim & SEP)
-- **BPJS Aplicare** (Ketersediaan Kamar)
-- **BPJS Antrean Online** (Mobile JKN RS)
-- **BPJS i-Care** 
-- **BPJS Apotek / PRB**
-- **BPJS PCare**
-- **BPJS Mobile JKN FKTP**
-- **BPJS E-Klaim**
-- **Kemenkes SatuSehat**
-- **Kemenkes SISRUTE**
-- **Kemenkes SIRS Online**
-- **Kemenkes SITB**
+| # | Service | Category |
+|---|---------|----------|
+| 1 | BPJS VClaim | Klaim & SEP |
+| 2 | BPJS Aplicare | Ketersediaan Kamar |
+| 3 | BPJS Antrean Online | Mobile JKN RS |
+| 4 | BPJS i-Care | Rekam Medis JKN |
+| 5 | BPJS Apotek / PRB | Program Rujuk Balik |
+| 6 | BPJS PCare | Pelayanan FKTP |
+| 7 | BPJS Mobile JKN FKTP | Antrean FKTP |
+| 8 | BPJS E-Klaim | SmartClaim |
+| 9 | Kemenkes SatuSehat | FHIR R4 |
+| 10 | Kemenkes SISRUTE | Sistem Rujukan |
+| 11 | Kemenkes SIRS Online | Pelaporan RS |
+| 12 | Kemenkes SITB | Tuberkulosis |
 
 ---
 
