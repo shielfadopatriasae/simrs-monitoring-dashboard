@@ -1,58 +1,98 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIMRS Khanza API Monitoring Dashboard 🏥
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![SIMRS Dashboard Banner](https://img.shields.io/badge/SIMRS-Khanza-blue.svg) 
+![React](https://img.shields.io/badge/React-18.x-61DAFB.svg?logo=react)
+![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg?logo=laravel)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38B2AC.svg?logo=tailwind-css)
 
-## About Laravel
+A modern, real-time telemetry dashboard designed specifically for **SIMRS Khanza**. This application actively monitors the connectivity, latency, and health of 12 critical API endpoints from **BPJS Kesehatan** and **Kementerian Kesehatan (Kemenkes)**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Built with a focus on security, performance, and UI/UX, this dashboard ensures hospital IT administrators can proactively detect network or WAF (Web Application Firewall) issues before they impact patient services.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🌟 Key Features
 
-## Learning Laravel
+- **Real-time API Telemetry:** Live ping and latency tracking for 12 essential healthcare endpoints (VClaim, Aplicare, Antrean Online, SatuSehat, etc.).
+- **Smart WAF Bypass & Caching:** 
+  - **Auto-Caching:** Limits outbound pings to BPJS servers (e.g., max 12 requests/minute) to prevent hospital IPs from being blacklisted for spam/DDoS.
+  - **Intelligent Pathing:** Simulates legitimate API traffic with `User-Agent`, forced `IPv4`, and valid endpoint paths to bypass aggressive BPJS WAF connection resets (cURL Error 56).
+- **Secure Credential Extraction:** Dynamically reads and decrypts `database.xml` AES-128-CBC encryption on the backend. No secrets are ever exposed to the frontend.
+- **Glassmorphism UI:** A sleek, premium dashboard featuring React, Tailwind CSS v4, dynamic Sparkline charts, and instant Light/Dark mode toggling.
+- **Audio Alerts:** Automated system beeps to notify IT staff when critical services go offline.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Tech Stack
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Backend:** Laravel 12 (PHP 8.5)
+- **Frontend:** React 18, Inertia.js
+- **Styling:** Tailwind CSS v4 (Class Strategy Dark Mode)
+- **Monitoring Strategy:** Guzzle HTTP Client with custom SSL & Timeout rules.
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## ⚙️ Installation & Setup
 
-```bash
-composer require laravel/boost --dev
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/shielfadopatriasae/simrs-monitoring-dashboard.git
+   cd simrs-monitoring-dashboard
+   ```
 
-php artisan boost:install
-```
+2. **Install Dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+3. **Environment Setup**
+   Copy the example `.env` file and generate an application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Contributing
+4. **Configure Endpoints**
+   Open your `.env` file and paste the API URLs retrieved from your SIMRS Khanza `database.xml`. Example:
+   ```env
+   URLAPIBPJS="https://apijkn.bpjs-kesehatan.go.id/vclaim-rest"
+   URLAPIAPLICARE="https://new-api.bpjs-kesehatan.go.id/aplicaresws"
+   # Add the rest of the endpoints here...
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+5. **Run the Application**
+   Open two terminals and start both servers:
+   ```bash
+   # Terminal 1: Start Laravel Backend
+   php artisan serve
 
-## Code of Conduct
+   # Terminal 2: Start Vite Frontend
+   npm run dev
+   ```
+   Visit `http://localhost:8000` in your browser.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🛡️ Endpoints Monitored
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **BPJS VClaim** (Klaim & SEP)
+- **BPJS Aplicare** (Ketersediaan Kamar)
+- **BPJS Antrean Online** (Mobile JKN RS)
+- **BPJS i-Care** 
+- **BPJS Apotek / PRB**
+- **BPJS PCare**
+- **BPJS Mobile JKN FKTP**
+- **BPJS E-Klaim**
+- **Kemenkes SatuSehat**
+- **Kemenkes SISRUTE**
+- **Kemenkes SIRS Online**
+- **Kemenkes SITB**
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 👨‍💻 Developed By
+
+**[Shielfado Patriasae](https://github.com/shielfadopatriasae)**  
+*IT Professional & Web Developer*  
+Specializing in Healthcare IT Integrations, Web Security, and Modern UI/UX.
