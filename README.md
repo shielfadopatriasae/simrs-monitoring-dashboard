@@ -120,7 +120,9 @@ nano .env
 docker stack deploy -c docker-stack.yml simrs-monitor
 ```
 > [!TIP]
-> Dockerfile kami sudah dilengkapi sistem otomatis untuk mengatur hak akses (*permissions*) dan pembuatan database SQLite secara internal di dalam kontainer. Anda tidak perlu lagi menjalankan perintah `chmod` atau `chown` secara manual setelah deploy!
+> **Kemudahan Ekstra di Docker Swarm:**
+> - **Bebas Atur Permission SQLite:** Dockerfile kami sudah otomatis membuat database SQLite dan mengatur izin akses folder (`chown www-data`) di dalam container saat proses build.
+> - **Zero-Configuration Nginx (Sangat Cocok untuk Portainer):** Konfigurasi Nginx sudah dibundel secara *inline* di dalam `docker-stack.yml`. Anda **tidak perlu lagi menyalin file `nginx.conf` fisik** ke server host. Cukup copy-paste YAML stack langsung ke Portainer UI, isi `.env`, dan deploy!
 
 ---
 
