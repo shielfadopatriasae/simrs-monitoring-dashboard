@@ -2,7 +2,7 @@
 FROM node:20-alpine AS node_builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
@@ -18,9 +18,10 @@ RUN apk add --no-cache \
     zip \
     unzip \
     sqlite-dev \
-    libzip-dev
+    libzip-dev \
+    oniguruma-dev
 
-RUN docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip
+RUN docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip mbstring
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
