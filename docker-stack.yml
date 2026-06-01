@@ -37,6 +37,9 @@ services:
       - simrs-network
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == it
       update_config:
         parallelism: 1
         delay: 10s
