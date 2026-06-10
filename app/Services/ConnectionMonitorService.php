@@ -70,30 +70,22 @@ class ConnectionMonitorService
             ];
         }
 
-        // Klasifikasi kode error TCP (errno dari fsockopen)
+        // Semua kegagalan TCP = OFFLINE (server tidak bisa dijangkau dari jaringan ini)
         $msg = match(true) {
-            // DNS gagal resolve (getaddrinfo) — domain tidak ada / butuh VPN
             str_contains($errstr, 'getaddrinfo') ||
             str_contains($errstr, 'Name does not resolve') ||
             str_contains($errstr, 'Name or service not known')
-                                                      => "DNS Error: Domain tidak dapat ditemukan ({$host}). URL mungkin tidak valid, atau hanya bisa diakses dari jaringan VPN/intranet khusus.",
-            $errno === 111                             => "TCP Error: Koneksi ditolak (port $port tertutup / firewall memblokir)",
-            $errno === 110 || str_contains($errstr, 'timed out')
-                                                      => "TCP Timeout: Server tidak merespons dalam {$timeout} detik",
-            $errno === 113                             => 'TCP Error: No route to host — jaringan tidak dapat menjangkau server',
-            str_contains($errstr, 'reset')            => 'TCP: Koneksi direset oleh WAF/firewall server',
-            default                                   => "TCP Error [$errno]: $errstr",
+                                               => "OFFLINE: Domain '{$host}' tidak dapat ditemukan di DNS. Server tidak bisa dijangkau dari jaringan ini.",
+            $errno === 111                     => "OFFLINE: Koneksi ditolak — port $port tertutup atau firewall memblokir akses.",
+            $errno === 110 ||
+            str_contains($errstr, 'timed out') => "OFFLINE: Timeout — server tidak merespons dalam {$timeout} detik.",
+            $errno === 113                     => 'OFFLINE: No route to host — jaringan tidak dapat menjangkau server.',
+            str_contains($errstr, 'reset')     => 'OFFLINE: Koneksi direset oleh server/firewall.',
+            default                            => "OFFLINE: TCP Error [$errno] - $errstr",
         };
 
-        // DNS error → status ERROR (bukan OFFLINE, masalah di konfigurasi URL)
-        $status = (str_contains($errstr, 'getaddrinfo') ||
-                   str_contains($errstr, 'Name does not resolve') ||
-                   str_contains($errstr, 'Name or service not known'))
-                  ? 'ERROR'
-                  : 'OFFLINE';
-
         return [
-            'status'       => $status,
+            'status'       => 'OFFLINE',
             'latency'      => $latency,
             'errorMessage' => $msg,
         ];
