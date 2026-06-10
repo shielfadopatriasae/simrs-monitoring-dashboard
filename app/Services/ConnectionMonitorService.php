@@ -116,12 +116,24 @@ class ConnectionMonitorService
             $category     = $config['category'];
 
             // ---------------------------------------------------------------
-            // BPJS endpoint → TCP Socket Check (ZERO API HIT, nol credentials)
-            // Non-BPJS     → HTTP request biasa
+            // Semua endpoint eksternal pemerintah → TCP Socket Check
+            // (BPJS, SatuSehat, Sisrute, SIRS, SITB)
+            //
+            // Keunggulan TCP check vs HTTP request:
+            //  ✅ Nol API hit → tidak kena rate limit
+            //  ✅ Tidak butuh credentials (cons_id, secret, Bearer token)
+            //  ✅ Tidak kena 401/400/56 karena tidak kirim request apapun
+            //  ✅ Cukup akurat: port 443 bisa dibuka = server aktif
             // ---------------------------------------------------------------
-            $bpjsCategories = ['VCLAIM', 'APLICARE', 'ANTROL', 'FKTP', 'ICARE', 'PCARE', 'SMARTCLAIM', 'APOTEK'];
+            $tcpCategories = [
+                // BPJS
+                'VCLAIM', 'APLICARE', 'ANTROL', 'FKTP',
+                'ICARE', 'PCARE', 'SMARTCLAIM', 'APOTEK',
+                // Kemenkes
+                'SATUSEHAT', 'SISRUTE', 'SIRS', 'SITB',
+            ];
 
-            if (in_array($category, $bpjsCategories)) {
+            if (in_array($category, $tcpCategories)) {
                 $tcp = $this->tcpCheck($url);
                 return [
                     'name'         => $config['name'],
