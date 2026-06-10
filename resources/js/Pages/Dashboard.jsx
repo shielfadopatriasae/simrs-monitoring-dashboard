@@ -67,13 +67,14 @@ export default function Dashboard({ endpoints }) {
     };
 
     const checkAndAlert = (newStatusData) => {
-        let isError = false;
+        // Alert hanya berbunyi untuk ERROR dan OFFLINE (bukan WARNING)
+        let isCritical = false;
         Object.values(newStatusData).forEach(result => {
             if (result.status === 'ERROR' || result.status === 'OFFLINE') {
-                isError = true;
+                isCritical = true;
             }
         });
-        if (isError) {
+        if (isCritical) {
             playAlert();
         }
     };
@@ -125,10 +126,12 @@ export default function Dashboard({ endpoints }) {
     // Derived stats
     const total = Object.keys(endpoints).length;
     let onlineCount = 0;
-    let offlineCount = 0;
+    let warningCount = 0;
+    let errorCount = 0;
     Object.values(statusData).forEach(item => {
         if (item.status === 'ONLINE') onlineCount++;
-        else offlineCount++;
+        else if (item.status === 'WARNING' || item.status === 'NOT_FOUND') warningCount++;
+        else errorCount++;
     });
 
     return (
@@ -168,18 +171,22 @@ export default function Dashboard({ endpoints }) {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div className="bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border border-transparent dark:border-slate-700">
                             <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">Total Endpoint</h4>
                             <p className="text-3xl font-bold text-gray-900 dark:text-white">{total}</p>
                         </div>
                         <div className="bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border border-transparent dark:border-green-500/30">
-                            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">Status Online</h4>
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">🟢 Online</h4>
                             <p className="text-3xl font-bold text-green-600 dark:text-green-400">{onlineCount}</p>
                         </div>
+                        <div className="bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border border-transparent dark:border-yellow-500/30">
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">🟡 Warning</h4>
+                            <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{warningCount}</p>
+                        </div>
                         <div className="bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border border-transparent dark:border-red-500/30">
-                            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">Status Offline / Error</h4>
-                            <p className="text-3xl font-bold text-red-600 dark:text-red-400">{offlineCount}</p>
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400">🔴 Error / Offline</h4>
+                            <p className="text-3xl font-bold text-red-600 dark:text-red-400">{errorCount}</p>
                         </div>
                     </div>
 
@@ -188,15 +195,65 @@ export default function Dashboard({ endpoints }) {
                         {Object.entries(endpoints).map(([id, config]) => {
                             const data = statusData[id] || {};
                             const history = latencyHistory[id] || [];
-                            const isOnline = data.status === 'ONLINE';
-                            const isError = data.status === 'ERROR';
-                            const isOffline = data.status === 'OFFLINE' || isError;
-                            
+
+                            const isOnline    = data.status === 'ONLINE';
+                            const isWarning   = data.status === 'WARNING';
+                            const isNotFound  = data.status === 'NOT_FOUND';
+                            const isError     = data.status === 'ERROR';
+                            const isOffline   = data.status === 'OFFLINE';
+                            const isCritical  = isError || isOffline;
+
+                            // Warna border kartu
+                            const cardBorder = isOnline
+                                ? 'border-gray-200 dark:border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]'
+                                : isWarning
+                                ? 'border-yellow-300 dark:border-yellow-500/60 shadow-[0_0_15px_rgba(234,179,8,0.15)] hover:shadow-[0_0_20px_rgba(234,179,8,0.25)]'
+                                : isNotFound
+                                ? 'border-orange-300 dark:border-orange-500/60 shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:shadow-[0_0_20px_rgba(249,115,22,0.25)]'
+                                : isCritical
+                                ? 'border-red-300 dark:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse'
+                                : 'border-gray-200 dark:border-slate-700';
+
+                            // Warna & teks badge status
+                            const badgeStyle = isOnline
+                                ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 dark:shadow-[0_0_10px_rgba(34,197,94,0.4)]'
+                                : isWarning
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300 dark:shadow-[0_0_10px_rgba(234,179,8,0.4)]'
+                                : isNotFound
+                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 dark:shadow-[0_0_10px_rgba(249,115,22,0.4)]'
+                                : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 dark:shadow-[0_0_10px_rgba(239,68,68,0.4)]';
+
+                            const dotColor = isOnline ? 'bg-green-500'
+                                : isWarning ? 'bg-yellow-400'
+                                : isNotFound ? 'bg-orange-500'
+                                : 'bg-red-500';
+
+                            // Warna teks HTTP Code
+                            const codeColor = isOnline
+                                ? 'text-green-600 dark:text-green-400'
+                                : isWarning
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : isNotFound
+                                ? 'text-orange-600 dark:text-orange-400'
+                                : 'text-red-600 dark:text-red-400';
+
+                            // Warna message box
+                            const msgBoxStyle = isWarning
+                                ? 'mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded text-xs text-yellow-700 dark:text-yellow-300 font-mono overflow-hidden text-ellipsis whitespace-nowrap'
+                                : isNotFound
+                                ? 'mt-3 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded text-xs text-orange-700 dark:text-orange-300 font-mono overflow-hidden text-ellipsis whitespace-nowrap'
+                                : 'mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400 font-mono overflow-hidden text-ellipsis whitespace-nowrap';
+
+                            // Label badge
+                            const badgeLabel = isOnline ? 'ONLINE'
+                                : isWarning ? '⚠ WARNING'
+                                : isNotFound ? '🔎 NOT FOUND'
+                                : isOffline ? '● OFFLINE'
+                                : isError ? '✕ ERROR'
+                                : data.status;
+
                             return (
-                                <div key={id} className={`bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border relative overflow-hidden transition-all duration-300 ${
-                                    isOnline ? 'border-gray-200 dark:border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.1)] hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 
-                                    (isOffline ? 'border-red-300 dark:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse' : 'border-gray-200 dark:border-slate-700')
-                                }`}>
+                                <div key={id} className={`bg-white dark:bg-slate-800/80 dark:backdrop-blur-xl p-6 rounded-lg shadow-sm border relative overflow-hidden transition-all duration-300 ${cardBorder}`}>
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <span className="text-xs font-semibold px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-md">
@@ -204,15 +261,12 @@ export default function Dashboard({ endpoints }) {
                                             </span>
                                             <h3 className="mt-2 text-lg font-bold text-gray-900 dark:text-white">{config.name}</h3>
                                         </div>
-                                        
+
                                         {/* Status Badge */}
                                         {data.status ? (
-                                            <span className={`px-2 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${
-                                                isOnline ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 dark:shadow-[0_0_10px_rgba(34,197,94,0.4)]' : 
-                                                'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 dark:shadow-[0_0_10px_rgba(239,68,68,0.4)]'
-                                            }`}>
-                                                <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} ${isOnline && 'animate-ping'}`}></span>
-                                                {data.status}
+                                            <span className={`px-2 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${badgeStyle}`}>
+                                                <span className={`w-2 h-2 rounded-full ${dotColor} ${isOnline ? 'animate-ping' : ''}`}></span>
+                                                {badgeLabel}
                                             </span>
                                         ) : (
                                             <span className="px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-500">
@@ -220,7 +274,7 @@ export default function Dashboard({ endpoints }) {
                                             </span>
                                         )}
                                     </div>
-                                    
+
                                     <div className="mt-2 mb-4">
                                         <Sparkline data={history} />
                                     </div>
@@ -228,7 +282,7 @@ export default function Dashboard({ endpoints }) {
                                     <div className="space-y-2 mt-4 font-mono text-sm relative z-10">
                                         <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                             <span>HTTP Code:</span>
-                                            <span className={isOnline ? 'text-green-600 dark:text-green-400' : (isOffline ? 'text-red-600 dark:text-red-400' : '')}>
+                                            <span className={data.statusCode ? codeColor : ''}>
                                                 {data.statusCode || '-'}
                                             </span>
                                         </div>
@@ -239,13 +293,13 @@ export default function Dashboard({ endpoints }) {
                                     </div>
 
                                     {data.errorMessage && (
-                                        <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400 font-mono overflow-hidden text-ellipsis whitespace-nowrap">
+                                        <div className={msgBoxStyle} title={data.errorMessage}>
                                             {data.errorMessage}
                                         </div>
                                     )}
 
                                     <div className="mt-6 flex justify-end">
-                                        <button 
+                                        <button
                                             onClick={() => pingSingle(id)}
                                             className="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
                                         >

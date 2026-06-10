@@ -100,12 +100,75 @@ class ConnectionMonitorService
                 $latency = round((microtime(true) - $startTime) * 1000); // in ms
                 $statusCode = $response->status();
                 
-                // Status 301/302 juga dihitung ONLINE karena server merespon
-                if ($statusCode >= 200 && $statusCode < 500) {
+                // ============================================================
+                // Klasifikasi HTTP Status Code Lengkap
+                // ============================================================
+                // 1xx - Informational  : Server menerima request, proses berlanjut
+                // 2xx - Success        : Request berhasil diproses → ONLINE
+                // 3xx - Redirection    : Server aktif, tapi redirect → ONLINE
+                // 4xx - Client Error   : Server aktif, tapi ada masalah akses/request
+                //   400 Bad Request    → WARNING (server OK, request salah format)
+                //   401 Unauthorized   → WARNING (server OK, butuh autentikasi)
+                //   403 Forbidden      → WARNING (server OK, akses ditolak)
+                //   404 Not Found      → NOT_FOUND (endpoint tidak ditemukan)
+                //   405 Method N/A     → WARNING (server OK, method tidak didukung)
+                //   429 Rate Limited   → WARNING (server OK, terlalu banyak request)
+                //   4xx lainnya        → ERROR
+                // 5xx - Server Error   : Server bermasalah → ERROR
+                //   500 Internal Err   → ERROR (bug di server)
+                //   502 Bad Gateway    → ERROR (gateway/proxy error)
+                //   503 Unavailable    → ERROR (server kelebihan beban / maintenance)
+                //   504 Gateway Timeout→ ERROR (gateway timeout)
+                // ============================================================
+
+                if ($statusCode >= 100 && $statusCode < 200) {
+                    // 1xx Informational - server aktif
                     $status = 'ONLINE';
+                } elseif ($statusCode >= 200 && $statusCode < 300) {
+                    // 2xx Success - OK
+                    $status = 'ONLINE';
+                } elseif ($statusCode >= 300 && $statusCode < 400) {
+                    // 3xx Redirect - server aktif, hanya redirect
+                    $status = 'ONLINE';
+                } elseif (in_array($statusCode, [400, 401, 403, 405, 407, 429])) {
+                    // 4xx khusus: server AKTIF tapi ada masalah autentikasi/akses/rate limit
+                    // Untuk BPJS, mendapat 401/400 = server UP, hanya perlu konsumsi token
+                    $status = 'WARNING';
+                    $errorMessage = match($statusCode) {
+                        400 => 'HTTP 400 - Bad Request (Server aktif, format request tidak sesuai)',
+                        401 => 'HTTP 401 - Unauthorized (Server aktif, diperlukan autentikasi)',
+                        403 => 'HTTP 403 - Forbidden (Server aktif, akses ditolak)',
+                        405 => 'HTTP 405 - Method Not Allowed (Server aktif, method tidak didukung)',
+                        407 => 'HTTP 407 - Proxy Authentication Required',
+                        429 => 'HTTP 429 - Too Many Requests (Server aktif, rate limit tercapai)',
+                        default => "HTTP $statusCode"
+                    };
+                } elseif ($statusCode === 404) {
+                    // 404: Endpoint tidak ditemukan
+                    $status = 'NOT_FOUND';
+                    $errorMessage = 'HTTP 404 - Not Found (URL endpoint tidak ditemukan di server)';
+                } elseif ($statusCode >= 400 && $statusCode < 500) {
+                    // 4xx lainnya: error pada sisi client
+                    $status = 'ERROR';
+                    $errorMessage = "HTTP $statusCode - Client Error";
+                } elseif ($statusCode === 500) {
+                    $status = 'ERROR';
+                    $errorMessage = 'HTTP 500 - Internal Server Error (Bug di sisi server)';
+                } elseif ($statusCode === 502) {
+                    $status = 'ERROR';
+                    $errorMessage = 'HTTP 502 - Bad Gateway (Gateway / proxy bermasalah)';
+                } elseif ($statusCode === 503) {
+                    $status = 'ERROR';
+                    $errorMessage = 'HTTP 503 - Service Unavailable (Server kelebihan beban atau maintenance)';
+                } elseif ($statusCode === 504) {
+                    $status = 'ERROR';
+                    $errorMessage = 'HTTP 504 - Gateway Timeout (Gateway tidak mendapat respons dari server upstream)';
+                } elseif ($statusCode >= 500) {
+                    $status = 'ERROR';
+                    $errorMessage = "HTTP $statusCode - Server Error";
                 } else {
                     $status = 'ERROR';
-                    $errorMessage = "Server returned HTTP $statusCode";
+                    $errorMessage = "HTTP $statusCode - Unknown Status";
                 }
             } catch (Exception $e) {
                 $latency = round((microtime(true) - $startTime) * 1000);
