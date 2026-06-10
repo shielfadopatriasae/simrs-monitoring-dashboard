@@ -72,6 +72,11 @@ class ConnectionMonitorService
 
         // Klasifikasi kode error TCP (errno dari fsockopen)
         $msg = match(true) {
+            // DNS gagal resolve (getaddrinfo) — domain tidak ada / butuh VPN
+            str_contains($errstr, 'getaddrinfo') ||
+            str_contains($errstr, 'Name does not resolve') ||
+            str_contains($errstr, 'Name or service not known')
+                                                      => "DNS Error: Domain tidak dapat ditemukan ({$host}). URL mungkin tidak valid, atau hanya bisa diakses dari jaringan VPN/intranet khusus.",
             $errno === 111                             => "TCP Error: Koneksi ditolak (port $port tertutup / firewall memblokir)",
             $errno === 110 || str_contains($errstr, 'timed out')
                                                       => "TCP Timeout: Server tidak merespons dalam {$timeout} detik",
@@ -80,11 +85,19 @@ class ConnectionMonitorService
             default                                   => "TCP Error [$errno]: $errstr",
         };
 
+        // DNS error → status ERROR (bukan OFFLINE, masalah di konfigurasi URL)
+        $status = (str_contains($errstr, 'getaddrinfo') ||
+                   str_contains($errstr, 'Name does not resolve') ||
+                   str_contains($errstr, 'Name or service not known'))
+                  ? 'ERROR'
+                  : 'OFFLINE';
+
         return [
-            'status'       => 'OFFLINE',
+            'status'       => $status,
             'latency'      => $latency,
             'errorMessage' => $msg,
         ];
+
     }
 
     public function pingEndpoint(array $config): array
