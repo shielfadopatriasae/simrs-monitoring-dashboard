@@ -237,12 +237,12 @@ export default function Dashboard({ endpoints }) {
                                 ? 'text-orange-600 dark:text-orange-400'
                                 : 'text-red-600 dark:text-red-400';
 
-                            // Warna message box
+                            // Warna message box — teks wrap penuh agar bisa dibaca
                             const msgBoxStyle = isWarning
-                                ? 'mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded text-xs text-yellow-700 dark:text-yellow-300 font-mono overflow-hidden text-ellipsis whitespace-nowrap'
+                                ? 'mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded text-xs text-yellow-700 dark:text-yellow-300 font-mono break-words leading-relaxed cursor-pointer select-all hover:opacity-80 transition-opacity'
                                 : isNotFound
-                                ? 'mt-3 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded text-xs text-orange-700 dark:text-orange-300 font-mono overflow-hidden text-ellipsis whitespace-nowrap'
-                                : 'mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400 font-mono overflow-hidden text-ellipsis whitespace-nowrap';
+                                ? 'mt-3 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded text-xs text-orange-700 dark:text-orange-300 font-mono break-words leading-relaxed cursor-pointer select-all hover:opacity-80 transition-opacity'
+                                : 'mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400 font-mono break-words leading-relaxed cursor-pointer select-all hover:opacity-80 transition-opacity';
 
                             // Label badge
                             const badgeLabel = isOnline ? 'ONLINE'
